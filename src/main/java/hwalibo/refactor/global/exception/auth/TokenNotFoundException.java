@@ -1,4 +1,4 @@
-package hwalibo.refactor.exception.auth;
+package hwalibo.refactor.global.exception.auth;
 
 public class TokenNotFoundException extends RuntimeException {
     public TokenNotFoundException(String message) {

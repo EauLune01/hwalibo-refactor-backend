@@ -1,4 +1,4 @@
-package hwalibo.refactor.exception.user;
+package hwalibo.refactor.global.exception.user;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String message) {

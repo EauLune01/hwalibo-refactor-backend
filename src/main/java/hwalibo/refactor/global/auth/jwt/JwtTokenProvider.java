@@ -1,6 +1,6 @@
 package hwalibo.refactor.global.auth.jwt;
 
-import hwalibo.refactor.exception.auth.InvalidTokenException;
+import hwalibo.refactor.global.exception.auth.InvalidTokenException;
 import hwalibo.refactor.global.auth.CustomOAuth2User;
 import hwalibo.refactor.global.domain.Gender;
 import hwalibo.refactor.global.domain.Role;

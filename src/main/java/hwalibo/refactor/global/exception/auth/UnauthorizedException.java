@@ -1,4 +1,4 @@
-package hwalibo.refactor.exception.auth;
+package hwalibo.refactor.global.exception.auth;
 
 public class UnauthorizedException extends RuntimeException {
     public UnauthorizedException(String message) {

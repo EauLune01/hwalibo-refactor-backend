@@ -1,11 +1,11 @@
-package hwalibo.refactor.exception;
+package hwalibo.refactor.global.exception;
 
-import hwalibo.refactor.exception.auth.InvalidTokenException;
-import hwalibo.refactor.exception.auth.TokenNotFoundException;
-import hwalibo.refactor.exception.auth.UnauthorizedException;
-import hwalibo.refactor.exception.user.DuplicateUserNameException;
-import hwalibo.refactor.exception.user.IdenticalNameException;
-import hwalibo.refactor.exception.user.UserNotFoundException;
+import hwalibo.refactor.global.exception.auth.InvalidTokenException;
+import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
+import hwalibo.refactor.global.exception.auth.UnauthorizedException;
+import hwalibo.refactor.global.exception.user.DuplicateUserNameException;
+import hwalibo.refactor.global.exception.user.IdenticalNameException;
+import hwalibo.refactor.global.exception.user.UserNotFoundException;
 import hwalibo.refactor.global.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

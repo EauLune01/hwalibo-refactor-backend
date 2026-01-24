@@ -1,9 +1,9 @@
 package hwalibo.refactor.global.auth.service;
 
-import hwalibo.refactor.exception.auth.InvalidTokenException;
-import hwalibo.refactor.exception.auth.TokenNotFoundException;
-import hwalibo.refactor.exception.auth.UnauthorizedException;
-import hwalibo.refactor.exception.user.UserNotFoundException;
+import hwalibo.refactor.global.exception.auth.InvalidTokenException;
+import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
+import hwalibo.refactor.global.exception.auth.UnauthorizedException;
+import hwalibo.refactor.global.exception.user.UserNotFoundException;
 import hwalibo.refactor.global.auth.jwt.JwtTokenProvider;
 import hwalibo.refactor.global.dto.response.TokenResponse;
 import hwalibo.refactor.user.domain.User;
