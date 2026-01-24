@@ -1,0 +1,4 @@
+package hwalibo.refactor.user.service;
+
+public class UserQueryService {
+}

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>OAuth2 + JWT 통합 테스트 대시보드</title>
+    <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          text-align: center;
+          margin-top: 60px;
+          color: #333;
+          padding-bottom: 50px; /* 스크롤 여유 공간 */
+        }
+        h1 { font-size: 26px; margin-bottom: 20px; }
+        .btn {
+          display: inline-block;
+          width: 220px;
+          padding: 12px 16px;
+          margin: 6px;
+          border-radius: 6px;
+          border: none;
+          font-size: 15px;
+          cursor: pointer;
+          transition: transform 0.1s ease-in-out;
+          color: #fff;
+          font-weight: 500;
+        }
+        .btn:hover { transform: scale(1.03); }
+
+        .google   { background-color: #DB4437; }
+        .naver    { background-color: #1EC800; }
+        .kakao    { background-color: #FEE500; color: #3C1E1E; }
+        .facebook { background-color: #1877F2; }
+        .action   { background-color: #444; }
+        .info     { background-color: #555; }
+        .gpt      { background-color: #8E44AD; }
+
+        /* 회원탈퇴용 Danger 버튼 */
+        .danger   { background-color: #E74C3C; }
+
+        #loading { display:none; font-size:14px; color:#555; }
+        .status {
+          margin-top: 40px;
+          font-size: 14px;
+          color: #555;
+          white-space: pre-line;
+        }
+        pre {
+          text-align: left;
+          display: inline-block;
+          background: #f6f6f6;
+          border-radius: 8px;
+          padding: 16px;
+          width: 80%;
+          max-width: 800px;
+          overflow-x: auto;
+          line-height: 1.6;
+        }
+
+        /* 커스텀 확인 모달 CSS */
+        .modal-overlay {
+            display: none; /* 기본 숨김 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 25px 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .modal-content h2 { margin-top: 0; color: #E74C3C; }
+        .modal-content p { white-space: pre-line; line-height: 1.7; }
+        .modal-buttons { margin-top: 25px; }
+        .modal-buttons .btn { width: 100px; }
+        .btn-confirm { background-color: #E74C3C; }
+        .btn-cancel { background-color: #95a5a6; }
+    </style>
+</head>
+<body>
+
+<h1>OAuth2 로그인 테스트 (Naver)</h1>
+
+<div>
+    <!-- (백엔드 서버 주소)/oauth2/authorization/naver -->
+    <a href="/oauth2/authorization/naver"><button class="btn naver">Naver 로그인</button></a>
+</div>
+
+<hr style="margin: 30px 0; width: 70%;">
+
+<div>
+    <button class="btn action" onclick="reissueToken()">🔄 토큰 재발급</button>
+    <button class="btn action" onclick="logout()">🚪 로그아웃</button>
+</div>
+
+<!-- 회원탈퇴 버튼 섹션 -->
+<div style="margin-top: 15px;">
+    <button class="btn danger" onclick="confirmWithdraw()">🔥 회원 탈퇴 (계정 삭제)</button>
+</div>
+
+<hr style="margin: 30px 0; width: 70%;">
+
+<div>
+    <button class="btn info" onclick="fetchUserInfo()">👤 내 정보 조회</button>
+    <button class="btn info" onclick="updateUserName()">✏️ 닉네임 변경</button>
+</div>
+
+<hr style="margin: 30px 0; width: 70%;">
+
+<div>
+    <button class="btn gpt" onclick="summarizeToilet1()">🧠 리뷰 요약 (toiletId=1)</button>
+    <span id="loading">요약 생성 중...</span>
+</div>
+
+<div class="status" id="status"></div>
+<pre id="result">API 응답 결과가 여기에 표시됩니다.</pre>
+<!-- 회원탈퇴 성공 메시지 박스 -->
+<div id="withdrawSuccess"
+     style="
+        display:none;
+        margin-top:20px;
+        padding:18px;
+        background:#e8f8f0;
+        color:#2c7a4b;
+        border:1px solid #b6e2c3;
+        border-radius:8px;
+        font-size:16px;
+        font-weight:600;
+     ">
+    ✅ 회원탈퇴가 성공적으로 완료되었습니다.
+</div>
+<!-- 커스텀 확인 모달 HTML -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 id="modalTitle">확인</h2>
+        <p id="modalMessage">이 작업을 수행하시겠습니까?</p>
+        <div class="modal-buttons">
+            <button id="modalBtnConfirm" class="btn btn-confirm">확인</button>
+            <button id="modalBtnCancel" class="btn btn-cancel">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === 전역 변수 및 초기화 ===
+    const resultEl = document.getElementById('result');
+    let onConfirmCallback = null; // 모달 확인 버튼 클릭 시 실행될 콜백
+
+    window.onload = () => {
+        showStatus();
+        // 모달 버튼 이벤트 리스너 설정
+        document.getElementById('modalBtnCancel').onclick = hideModal;
+        document.getElementById('modalBtnConfirm').onclick = () => {
+            if (onConfirmCallback) {
+                onConfirmCallback();
+            }
+            hideModal();
+        };
+    };
+
+    function showStatus() {
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+      const statusEl = document.getElementById('status');
+
+      if (accessToken && refreshToken) {
+        statusEl.innerText =
+          '✅ 로그인 상태\n\n' +
+          'Access Token: ' + accessToken.substring(0, 25) + '...\n' +
+          'Refresh Token: ' + refreshToken.substring(0, 25) + '...';
+      } else {
+        statusEl.innerText = '🔒 현재 로그아웃 상태입니다.';
+      }
+    }
+
+    // === 모달 제어 함수 ===
+    function showModal(title, message, onConfirm) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = message;
+        onConfirmCallback = onConfirm;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function hideModal() {
+        document.getElementById('confirmModal').style.display = 'none';
+        onConfirmCallback = null;
+    }
+
+    // === 토큰 재발급 ===
+    async function reissueToken() {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        resultEl.innerText = '❌ 재발급 실패: Refresh Token이 없습니다. 먼저 로그인하세요.';
+        return;
+      }
+
+      resultEl.innerText = '토큰 재발급 요청 중...';
+
+      try {
+        const res = await fetch('/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          localStorage.setItem('accessToken', result.data.accessToken);
+          localStorage.setItem('refreshToken', result.data.refreshToken);
+          resultEl.innerText = '🔄 토큰 재발급 성공!\n' + JSON.stringify(result, null, 2);
+          showStatus();
+        } else {
+          resultEl.innerText = '❌ 재발급 실패: \n' + JSON.stringify(result, null, 2);
+        }
+      } catch (err) {
+        console.error(err);
+        resultEl.innerText = '❌ 재발급 중 오류 발생:\n' + err.message;
+      }
+    }
+
+    // === 로그아웃 ===
+    async function logout() {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        resultEl.innerText = '🔒 이미 로그아웃 상태입니다.';
+        return;
+      }
+
+      resultEl.innerText = '로그아웃 요청 중...';
+
+      try {
+        const res = await fetch('/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+
+        // 204 No Content 또는 200 OK 모두 성공으로 처리
+        if (res.ok) {
+            localStorage.clear();
+            resultEl.innerText = '🚪 로그아웃 완료!';
+            showStatus();
+        } else {
+            const result = await res.json();
+            resultEl.innerText = '❌ 로그아웃 실패: \n' + JSON.stringify(result, null, 2);
+        }
+      } catch (err) {
+        console.error(err);
+        resultEl.innerText = '❌ 로그아웃 중 오류 발생:\n' + err.message;
+      }
+    }
+
+    // === 회원 탈퇴 (1/2): 확인창 띄우기 ===
+    function confirmWithdraw() {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            resultEl.innerText = '🔥 회원 탈퇴 실패: 먼저 로그인하세요.';
+            return;
+        }
+
+        // 실제 탈퇴 로직(withdrawUser)을 콜백으로 넘겨 모달을 띄움
+        showModal(
+            '🔥 회원 탈퇴',
+            '정말로 계정을 삭제하시겠습니까?\n모든 리뷰와 이미지가 영구적으로 삭제되며,\n이 작업은 되돌릴 수 없습니다.',
+            withdrawUser // '확인' 누르면 실행될 함수
+        );
+    }
+
+    // === 회원 탈퇴 (2/2): 실제 API 호출 ===
+    async function withdrawUser() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    resultEl.innerText = '🔥 회원 탈퇴 요청 중... (모든 데이터를 삭제합니다)';
+
+    try {
+        const res = await fetch('/auth/withdraw', {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (res.ok) {
+            localStorage.clear();
+
+            // ✅ 기존 resultEl 표시 + 성공 박스 표시
+            resultEl.innerText = '';
+            document.getElementById('withdrawSuccess').style.display = 'block';
+
+            showStatus();
+        } else {
+            const data = await res.json();
+            resultEl.innerText = `🔥 회원 탈퇴 실패 (Code: ${res.status}):\n${JSON.stringify(data, null, 2)}`;
+        }
+    } catch (err) {
+        console.error(err);
+        resultEl.innerText = '🔥 회원 탈퇴 중 치명적인 오류 발생:\n' + err.message;
+    }
+}
+
+
+
+    // === 내 정보 조회 ===
+    async function fetchUserInfo() {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        resultEl.innerText = '❌ 내 정보 조회 실패: 로그인 후 이용하세요.';
+        return;
+      }
+      resultEl.innerText = '내 정보 조회 중...';
+      const res = await fetch('/user/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      resultEl.innerText = JSON.stringify(data, null, 2);
+    }
+
+    // === 닉네임 변경 ===
+    async function updateUserName() {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        resultEl.innerText = '❌ 닉네임 변경 실패: 로그인 후 이용하세요.';
+        return;
+      }
+      const newName = prompt('새 닉네임 (2~10자):');
+      if (!newName) return;
+
+      resultEl.innerText = '닉네임 변경 요청 중...';
+      const res = await fetch('/user/profile/name', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: newName })
+      });
+      const data = await res.json();
+      resultEl.innerText = JSON.stringify(data, null, 2);
+    }
+
+    // === 리뷰 요약 ===
+    async function summarizeToilet1() {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        resultEl.innerText = '❌ 요약 실패: 로그인 후 이용하세요.';
+        return;
+      }
+
+      const loader = document.getElementById('loading');
+      loader.style.display = 'inline';
+      resultEl.innerText = 'GPT 리뷰 요약 생성 중... (최대 10~15초 소요)';
+
+      try {
+        const res = await fetch('/toilet/1/reviews/summary', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success && data.data?.summary) {
+          resultEl.innerText =
+            `[요약 성공 ✅]\n${data.data.summary}\n\n== Raw ==\n` +
+            JSON.stringify(data, null, 2);
+        } else {
+          resultEl.innerText = JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        console.error(err);
+        resultEl.innerText = '❌ 요약 중 오류 발생:\n' + err.message;
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+</script>
+
+</body>
+</html>
