@@ -1,5 +1,6 @@
 package hwalibo.refactor.global.auth.jwt;
 
+import hwalibo.refactor.global.auth.dto.result.ReissueTokenResult;
 import hwalibo.refactor.global.exception.auth.InvalidTokenException;
 import hwalibo.refactor.global.auth.CustomOAuth2User;
 import hwalibo.refactor.global.domain.Gender;
@@ -21,6 +22,7 @@ import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -82,15 +84,16 @@ public class JwtTokenProvider {
         String genderStr = claims.get("gender", String.class);
         Gender gender = (genderStr != null) ? Gender.valueOf(genderStr) : null;
 
-        User principal = User.fromClaims(
+        User principalUser = User.fromClaims(
                 Long.parseLong(claims.getSubject()),
                 claims.get("username", String.class),
                 claims.get("name", String.class),
                 Role.valueOf((String) authorities.iterator().next().getAuthority()),
                 gender
         );
+        CustomOAuth2User customOAuth2User = new CustomOAuth2User(principalUser, new HashMap<>());
 
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        return new UsernamePasswordAuthenticationToken(customOAuth2User, token, authorities);
     }
 
     // User로부터 Authentication 생성
@@ -186,6 +189,13 @@ public class JwtTokenProvider {
             return token.substring(TOKEN_PREFIX.length());
         }
         return token;
+    }
+
+    public ReissueTokenResult createTokenSet(Authentication authentication) {
+        String accessToken = createAccessToken(authentication);
+        String refreshToken = createRefreshToken();
+
+        return ReissueTokenResult.of(accessToken, refreshToken);
     }
 }
 

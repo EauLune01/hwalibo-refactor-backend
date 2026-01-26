@@ -91,6 +91,8 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
     persistAuthorization: true
+  override-with-generic-response: false
+
   api-docs:
     path: /v3/api-docs
 

@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/auth/callback.html",
                                 "/auth/refresh", "/redis/ping").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/auth/refresh").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )

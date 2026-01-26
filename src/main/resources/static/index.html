@@ -152,12 +152,29 @@
 </div>
 
 <script>
+
     // === 전역 변수 및 초기화 ===
     const resultEl = document.getElementById('result');
-    let onConfirmCallback = null; // 모달 확인 버튼 클릭 시 실행될 콜백
+    let onConfirmCallback = null;
 
+    // window.onload는 딱 한 번만!
     window.onload = () => {
+        // 1. URL에서 토큰 추출 (로그인 리다이렉트 시 넘어온 값)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlAccessToken = urlParams.get('accessToken');
+        const urlRefreshToken = urlParams.get('refreshToken');
+
+        // 2. URL에 토큰이 있다면 localStorage 갱신 (로그인 직후 갱신됨)
+        if (urlAccessToken && urlRefreshToken) {
+            localStorage.setItem('accessToken', urlAccessToken);
+            localStorage.setItem('refreshToken', urlRefreshToken);
+            console.log("새 토큰 저장 완료!");
+            // URL 파라미터 깔끔하게 제거
+            window.history.replaceState({}, document.title, "/index.html");
+        }
+
         showStatus();
+
         // 모달 버튼 이벤트 리스너 설정
         document.getElementById('modalBtnCancel').onclick = hideModal;
         document.getElementById('modalBtnConfirm').onclick = () => {
@@ -169,18 +186,18 @@
     };
 
     function showStatus() {
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
-      const statusEl = document.getElementById('status');
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+        const statusEl = document.getElementById('status');
 
-      if (accessToken && refreshToken) {
-        statusEl.innerText =
-          '✅ 로그인 상태\n\n' +
-          'Access Token: ' + accessToken.substring(0, 25) + '...\n' +
-          'Refresh Token: ' + refreshToken.substring(0, 25) + '...';
-      } else {
-        statusEl.innerText = '🔒 현재 로그아웃 상태입니다.';
-      }
+        if (accessToken && refreshToken) {
+            statusEl.innerText =
+                '✅ 로그인 상태\n\n' +
+                'Access Token: ' + accessToken.substring(0, 25) + '...\n' +
+                'Refresh Token: ' + refreshToken.substring(0, 25) + '...';
+        } else {
+            statusEl.innerText = '🔒 현재 로그아웃 상태입니다.';
+        }
     }
 
     // === 모달 제어 함수 ===

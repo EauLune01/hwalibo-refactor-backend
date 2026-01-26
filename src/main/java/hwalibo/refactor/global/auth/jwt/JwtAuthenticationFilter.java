@@ -31,41 +31,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-
-        // 1. 헤더에서 토큰 추출
         String token = resolveToken(request);
 
-        // 2. 토큰이 없으면 고민하지 말고 다음 필터로 고! (SecurityConfig가 알아서 판단함)
-        if (!StringUtils.hasText(token)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        try {
-            // 3. 블랙리스트(로그아웃 토큰) 확인
-            if (isBlacklisted(token)) {
-                log.warn("❌ 로그아웃된 토큰입니다.");
-                entryPoint.commence(request, response, new InsufficientAuthenticationException("로그아웃된 사용자입니다."));
-                return;
+        if (StringUtils.hasText(token)) {
+            try {
+                // 블랙리스트가 아니고 + 유효한 토큰일 때만 SecurityContext를 채움
+                if (!isBlacklisted(token) && jwtTokenProvider.validateToken(token)) {
+                    Authentication auth = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (Exception e) {
+                log.error("JWT 인증 과정에서 예외 발생: {}", e.getMessage());
+                SecurityContextHolder.clearContext();
             }
-
-            // 4. 유효성 검사 및 인증 처리
-            if (jwtTokenProvider.validateToken(token)) {
-                Authentication auth = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } else {
-                log.warn("⚠️ 유효하지 않은 토큰입니다.");
-                entryPoint.commence(request, response, new InsufficientAuthenticationException("유효하지 않은 토큰입니다."));
-                return;
-            }
-
-        } catch (Exception e) {
-            log.error("🔥 JWT 처리 중 오류 발생: {}", e.getMessage());
-            SecurityContextHolder.clearContext();
-            entryPoint.commence(request, response, new InsufficientAuthenticationException("JWT 인증 오류"));
-            return;
         }
-
         chain.doFilter(request, response);
     }
 
