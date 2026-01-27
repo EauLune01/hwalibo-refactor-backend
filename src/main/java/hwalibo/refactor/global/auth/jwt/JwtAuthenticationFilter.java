@@ -22,7 +22,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisTemplate;
-    private final AuthenticationEntryPoint entryPoint;
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -60,7 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
     }
 
-    // OPTIONS 요청은 필터를 아예 안 타게 설정 (성능 이득)
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getMethod().equals("OPTIONS");

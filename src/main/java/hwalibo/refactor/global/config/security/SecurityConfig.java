@@ -53,7 +53,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationEntryPoint restAuthenticationEntryPoint) {
-        return new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate, restAuthenticationEntryPoint);
+        return new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate);
     }
 
     @Bean
