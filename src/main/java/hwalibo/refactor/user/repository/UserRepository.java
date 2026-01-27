@@ -24,8 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             FROM
                 users u
             WHERE
-                u.status = 'ACTIVE' 
-        ) AS calculated_rank
+                u.status = 'ACTIVE') AS calculated_rank
         WHERE
             calculated_rank.id = :userId
         """, nativeQuery = true)

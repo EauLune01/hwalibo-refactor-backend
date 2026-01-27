@@ -3,6 +3,8 @@ package hwalibo.refactor.global.exception;
 import hwalibo.refactor.global.exception.auth.InvalidTokenException;
 import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
+import hwalibo.refactor.global.exception.review.ReviewNotFoundException;
+import hwalibo.refactor.global.exception.review.SummaryGenerationException;
 import hwalibo.refactor.global.exception.user.DuplicateUserNameException;
 import hwalibo.refactor.global.exception.user.IdenticalNameException;
 import hwalibo.refactor.global.exception.user.UserNotFoundException;
@@ -65,6 +67,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenNotFoundException.class)
     protected ResponseEntity<ApiResponse<?>> handleTokenNotFoundException(TokenNotFoundException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    //ReviewNotFoundException
+    @ExceptionHandler(ReviewNotFoundException.class)
+    protected ResponseEntity<ApiResponse<?>> handleReviewNotFoundException(ReviewNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    //SummaryGenerationException
+    @ExceptionHandler(SummaryGenerationException.class)
+    protected ResponseEntity<ApiResponse<?>> handleSummaryGenerationException(SummaryGenerationException e) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
