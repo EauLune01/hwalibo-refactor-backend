@@ -32,56 +32,41 @@ public class AuthCommandService {
     private final NaverAuthService naverAuthService;
 
     public ReissueTokenResult reissue(ReissueTokenCommand command) {
-
         validateReissueConditions(command);
-
         User user = userRepository.findByRefreshToken(command.getRefreshToken())
                 .orElseThrow(() -> new TokenNotFoundException("저장소에 Refresh Token이 존재하지 않습니다."));
-
         ReissueTokenResult result = jwtTokenProvider.createTokenSet(
                 jwtTokenProvider.getAuthenticationFromUser(user)
         );
-
         user.updateRefreshToken(result.getRefreshToken());
-
         return result;
     }
 
     public void logout(LogoutCommand command) {
-
         validateLoginStatus(command.getUser());
-
         command.getUser().updateRefreshToken(null);
-
         processTokenBlacklist(command.getAccessToken());
     }
 
     public void withdraw(WithdrawCommand command) {
-
         validateLoginStatus(command.getUser());
-
         User user = userRepository.findById(command.getUser().getId())
                 .orElseThrow(()->new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
         try {
             naverAuthService.revokeNaverToken(user.getNaverRefreshToken());
         } catch (Exception e) {
             log.error("네이버 연동 해제 실패 (DB 탈퇴는 진행함): {}", e.getMessage());
         }
-
         user.withdrawAndAnonymize();
-
         processTokenBlacklist(command.getAccessToken());
     }
 
     /******************** Helper Method ********************/
 
     private void validateReissueConditions(ReissueTokenCommand command) {
-
         if (command.getAccessToken() != null && isBlacklisted(command.getAccessToken())) {
             throw new UnauthorizedException("로그아웃된 사용자입니다.");
         }
-
         if (!jwtTokenProvider.validateToken(command.getRefreshToken())) {
             throw new InvalidTokenException("유효하지 않은 Refresh Token 입니다.");
         }

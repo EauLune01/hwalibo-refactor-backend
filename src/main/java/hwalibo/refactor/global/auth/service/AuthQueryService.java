@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true) // 조회 전용이므로 성능 최적화를 위해 readOnly 설정
 @RequiredArgsConstructor
 public class AuthQueryService {
-
     public ReissueTokenResponse getReissueResponse(ReissueTokenResult result) {
         return ReissueTokenResponse.from(result);
     }

@@ -5,6 +5,7 @@ import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
 import hwalibo.refactor.global.exception.review.ReviewNotFoundException;
 import hwalibo.refactor.global.exception.review.SummaryGenerationException;
+import hwalibo.refactor.global.exception.toilet.ToiletNotFoundException;
 import hwalibo.refactor.global.exception.user.DuplicateUserNameException;
 import hwalibo.refactor.global.exception.user.IdenticalNameException;
 import hwalibo.refactor.global.exception.user.UserNotFoundException;
@@ -79,6 +80,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SummaryGenerationException.class)
     protected ResponseEntity<ApiResponse<?>> handleSummaryGenerationException(SummaryGenerationException e) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+
+    //ToiletNotFoundException
+    @ExceptionHandler(ToiletNotFoundException.class)
+    protected ResponseEntity<ApiResponse<?>> handleToiletNotFoundException(ToiletNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

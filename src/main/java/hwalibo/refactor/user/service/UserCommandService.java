@@ -18,11 +18,8 @@ public class UserCommandService {
     private final UserRepository userRepository;
 
     public void updateUserName(User loginUser, UserNameUpdateCommand command) {
-
         User user = getAuthenticatedUserOrThrow(loginUser);
-
         validateNicknameChange(user, command.getNewName());
-
         user.updateName(command.getNewName());
     }
 

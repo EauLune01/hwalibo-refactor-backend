@@ -36,7 +36,6 @@ public class ReviewSummaryService {
     private List<Review> getLatestReviewsOrThrow(Long toiletId) {
         Pageable limit = PageRequest.of(0, 10);
         List<Review> reviews = reviewRepository.findLatestReviews(toiletId, limit);
-
         if (reviews.isEmpty()) {
             throw new ReviewNotFoundException("해당 화장실에 리뷰가 없습니다.");
         }

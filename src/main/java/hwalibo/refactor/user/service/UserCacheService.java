@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class UserRankService {
+public class UserCacheService {
     private final UserRepository userRepository;
 
     @Cacheable(value = "userRank", key = "#userId")
