@@ -5,7 +5,6 @@ import hwalibo.refactor.global.dto.response.ApiResponse;
 import hwalibo.refactor.toilet.dto.response.ToiletDetailResponse;
 import hwalibo.refactor.toilet.dto.result.ToiletDetailResult;
 import hwalibo.refactor.toilet.service.ToiletQueryService;
-import hwalibo.refactor.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
