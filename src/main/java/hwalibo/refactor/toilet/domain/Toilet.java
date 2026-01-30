@@ -74,10 +74,12 @@ public class Toilet extends BaseTimeEntity {
 
     /* ================= 비즈니스 로직 ================= */
 
-    public void updateReviewStats(double newReviewStar) {
-        double currentTotalStars = (this.star != null ? this.star : 0.0) * (this.numReview != null ? this.numReview : 0);
-        this.numReview = (this.numReview != null ? this.numReview : 0) + 1;
-        this.star = (currentTotalStars + newReviewStar) / this.numReview;
+    public void updateReviewStats(double oldStar, double newStar, boolean isNewReview) {
+        int currentNum = (this.numReview != null ? this.numReview : 0);
+        double currentStar = (this.star != null ? this.star : 0.0);
+        double currentTotalStars = currentStar * currentNum;
+        if (isNewReview) {this.numReview = currentNum + 1;}
+        this.star = (currentTotalStars - oldStar + newStar) / this.numReview;
     }
 
     public void removeReviewStats(double removedReviewStar) {

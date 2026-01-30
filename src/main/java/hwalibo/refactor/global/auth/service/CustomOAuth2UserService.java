@@ -2,7 +2,6 @@ package hwalibo.refactor.global.auth.service;
 
 import hwalibo.refactor.global.auth.CustomOAuth2User;
 import hwalibo.refactor.global.domain.Gender;
-import hwalibo.refactor.global.domain.Role;
 import hwalibo.refactor.global.domain.UserStatus;
 import hwalibo.refactor.global.oauth2.provider.NaverUserInfo;
 import hwalibo.refactor.global.oauth2.provider.OAuth2UserInfo;

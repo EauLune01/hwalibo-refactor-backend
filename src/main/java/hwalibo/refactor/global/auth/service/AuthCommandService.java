@@ -9,7 +9,6 @@ import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
 import hwalibo.refactor.global.exception.user.UserNotFoundException;
 import hwalibo.refactor.global.auth.jwt.JwtTokenProvider;
-import hwalibo.refactor.global.dto.response.TokenResponse;
 import hwalibo.refactor.user.domain.User;
 import hwalibo.refactor.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

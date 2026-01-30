@@ -50,6 +50,12 @@ public class ReviewImage extends BaseTimeEntity {
 
     /* ================= 비즈니스 메서드 ================= */
 
+    public void updateSortOrder(Integer newOrder) {
+        if (newOrder != null && newOrder > 0) {
+            this.sortOrder = newOrder;
+        }
+    }
+
     public void updateUrl(String newUrl) {
         if (newUrl != null && !newUrl.isBlank()) {
             this.url = newUrl;

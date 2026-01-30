@@ -3,8 +3,13 @@ package hwalibo.refactor.global.exception;
 import hwalibo.refactor.global.exception.auth.InvalidTokenException;
 import hwalibo.refactor.global.exception.auth.TokenNotFoundException;
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
+import hwalibo.refactor.global.exception.image.ImageCountInvalidException;
+import hwalibo.refactor.global.exception.image.ImageNotFoundException;
+import hwalibo.refactor.global.exception.image.InvalidImageException;
 import hwalibo.refactor.global.exception.review.ReviewNotFoundException;
 import hwalibo.refactor.global.exception.review.SummaryGenerationException;
+import hwalibo.refactor.global.exception.reviewLike.AlreadyLikedException;
+import hwalibo.refactor.global.exception.reviewLike.NotLikedException;
 import hwalibo.refactor.global.exception.toilet.ToiletNotFoundException;
 import hwalibo.refactor.global.exception.user.DuplicateUserNameException;
 import hwalibo.refactor.global.exception.user.IdenticalNameException;
@@ -86,6 +91,36 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ToiletNotFoundException.class)
     protected ResponseEntity<ApiResponse<?>> handleToiletNotFoundException(ToiletNotFoundException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    //AlreadyLikedException
+    @ExceptionHandler(AlreadyLikedException.class)
+    protected ResponseEntity<ApiResponse<?>> handleAlreadyLikedException(AlreadyLikedException e) {
+        return buildErrorResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    //NotLikedException
+    @ExceptionHandler(NotLikedException.class)
+    protected ResponseEntity<ApiResponse<?>> handleNotLikedException(NotLikedException e) {
+        return buildErrorResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    //이미지 누락
+    @ExceptionHandler(ImageNotFoundException.class)
+    protected ResponseEntity<ApiResponse<?>> NoImageException(ImageNotFoundException e){
+        return buildErrorResponse(HttpStatus.NOT_FOUND,e.getMessage());
+    }
+
+    //이미지 0~2 외의 개수 등록
+    @ExceptionHandler(ImageCountInvalidException.class)
+    public ResponseEntity<ApiResponse<?>> ImageCountInvalidException(ImageCountInvalidException e){
+        return buildErrorResponse(HttpStatus.BAD_REQUEST,e.getMessage());
+    }
+
+    //이미지 부적합
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<ApiResponse<?>> InvalidImageException(InvalidImageException e){
+        return buildErrorResponse(HttpStatus.BAD_REQUEST,e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

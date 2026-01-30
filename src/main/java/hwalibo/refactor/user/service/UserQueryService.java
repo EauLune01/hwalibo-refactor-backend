@@ -2,10 +2,17 @@ package hwalibo.refactor.user.service;
 
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
 import hwalibo.refactor.global.exception.user.UserNotFoundException;
+import hwalibo.refactor.review.domain.Review;
+import hwalibo.refactor.review.repository.ReviewRepository;
 import hwalibo.refactor.user.domain.User;
 import hwalibo.refactor.user.dto.result.UserResult;
+import hwalibo.refactor.user.dto.result.UserReviewResult;
 import hwalibo.refactor.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +23,7 @@ public class UserQueryService {
 
     private final UserRepository userRepository;
     private final UserCacheService userCacheService;
+    private final ReviewRepository reviewRepository;
 
     public UserResult getUserInfo(User loginUser) {
         User user = validateAndGetActiveUser(loginUser);
@@ -23,6 +31,19 @@ public class UserQueryService {
         int rate = userCacheService.calculateUserRate(user.getId());
 
         return UserResult.from(user, rate);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<UserReviewResult> getUserReviews(Long userId, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                10,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Slice<Review> reviewSlice = reviewRepository.findByUserId(userId, sortedPageable);
+
+        return reviewSlice.map(UserReviewResult::from);
     }
 
     /******************** Helper Method ********************/
