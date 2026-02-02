@@ -73,6 +73,10 @@ public class ReviewCommandService {
         User user = userRepository.findById(command.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
+        if (toilet.getGender() != user.getGender()) {
+            throw new IllegalArgumentException("본인의 성별과 일치하는 화장실에만 리뷰를 남길 수 있습니다.");
+        }
+
         Review review = Review.create(
                 user,
                 toilet,
@@ -92,6 +96,11 @@ public class ReviewCommandService {
         if (!review.getUser().getId().equals(userId)) {
             throw new SecurityException("본인이 작성한 리뷰만 수정/삭제할 수 있습니다.");
         }
+
+        if (review.getToilet().getGender() != review.getUser().getGender()) {
+            throw new IllegalArgumentException("성별 불일치: 본인의 성별과 다른 화장실 리뷰에 접근할 수 없습니다.");
+        }
+
         return review;
     }
 
@@ -102,9 +111,13 @@ public class ReviewCommandService {
         if (!review.getUser().getId().equals(userId)) {
             throw new SecurityException("본인이 작성한 리뷰만 수정/삭제할 수 있습니다.");
         }
+
+        if (review.getToilet().getGender() != review.getUser().getGender()) {
+            throw new IllegalArgumentException("성별 불일치: 본인의 성별과 다른 화장실 리뷰에 접근할 수 없습니다.");
+        }
+
         return review;
     }
-
     private void updateReviewDomain(Review review, ReviewUpdateCommand command) {
         Toilet toilet = review.getToilet();
         double oldRating = review.getRating();

@@ -37,5 +37,4 @@ public class ReviewQueryService {
 
         return ReviewUpdateResult.from(review.getId());
     }
-
 }

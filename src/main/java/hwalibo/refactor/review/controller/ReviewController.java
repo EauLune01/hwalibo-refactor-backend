@@ -56,7 +56,8 @@ public class ReviewController {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "리뷰 등록 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 검증 실패")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "성별 불일치, 입력값 검증 실패, 또는 이미지 개수 초과"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "화장실 정보를 찾을 수 없음")
     })
     @PostMapping(value = "/{toiletId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ReviewCreateResponse>> createReview(

@@ -6,6 +6,7 @@ import hwalibo.refactor.global.exception.auth.UnauthorizedException;
 import hwalibo.refactor.global.exception.image.ImageCountInvalidException;
 import hwalibo.refactor.global.exception.image.ImageNotFoundException;
 import hwalibo.refactor.global.exception.image.InvalidImageException;
+import hwalibo.refactor.global.exception.review.GenderMismatchException;
 import hwalibo.refactor.global.exception.review.ReviewNotFoundException;
 import hwalibo.refactor.global.exception.review.SummaryGenerationException;
 import hwalibo.refactor.global.exception.reviewLike.AlreadyLikedException;
@@ -105,19 +106,25 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    //이미지 누락
+    //GenderMismatchException
+    @ExceptionHandler(GenderMismatchException.class)
+    public ResponseEntity<ApiResponse<?>> handleGenderMismatchException(GenderMismatchException e) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    //ImageNotFoundException
     @ExceptionHandler(ImageNotFoundException.class)
     protected ResponseEntity<ApiResponse<?>> NoImageException(ImageNotFoundException e){
         return buildErrorResponse(HttpStatus.NOT_FOUND,e.getMessage());
     }
 
-    //이미지 0~2 외의 개수 등록
+    //ImageCountInvalidException
     @ExceptionHandler(ImageCountInvalidException.class)
     public ResponseEntity<ApiResponse<?>> ImageCountInvalidException(ImageCountInvalidException e){
         return buildErrorResponse(HttpStatus.BAD_REQUEST,e.getMessage());
     }
 
-    //이미지 부적합
+    //InvalidImageException
     @ExceptionHandler(InvalidImageException.class)
     public ResponseEntity<ApiResponse<?>> InvalidImageException(InvalidImageException e){
         return buildErrorResponse(HttpStatus.BAD_REQUEST,e.getMessage());

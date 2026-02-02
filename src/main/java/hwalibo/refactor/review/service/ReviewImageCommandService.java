@@ -1,7 +1,7 @@
 package hwalibo.refactor.review.service;
 
-import hwalibo.refactor.global.exception.image.ImageCountInvalidException;
 import hwalibo.refactor.global.exception.review.ReviewNotFoundException;
+import hwalibo.refactor.global.service.ImageValidationService;
 import hwalibo.refactor.global.service.S3Service;
 import hwalibo.refactor.review.domain.Review;
 import hwalibo.refactor.review.domain.ReviewImage;
@@ -24,6 +24,7 @@ public class ReviewImageCommandService {
     private final S3Service s3Service;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final ImageValidationService imageValidationService;
 
     public void uploadAndSaveAll(List<MultipartFile> files, Review review) {
         List<String> imageUrls = s3Service.uploadAll(files, "reviews");
@@ -33,6 +34,7 @@ public class ReviewImageCommandService {
         for (String url : imageUrls) {
             ReviewImage reviewImage = ReviewImage.create(review, url, 0);
             review.addReviewImage(reviewImage);
+            imageValidationService.validateReviewImage(reviewImage.getId());
         }
     }
 
@@ -86,6 +88,8 @@ public class ReviewImageCommandService {
                     return newImg;
                 }).toList();
 
-        reviewImageRepository.saveAll(newEntities);
+        List<ReviewImage> savedEntities = reviewImageRepository.saveAll(newEntities);
+
+        savedEntities.forEach(img -> imageValidationService.validateReviewImage(img.getId()));
     }
 }
