@@ -35,13 +35,7 @@ public class UserQueryService {
 
     @Transactional(readOnly = true)
     public Slice<UserReviewResult> getUserReviews(Long userId, Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                10,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Slice<Review> reviewSlice = reviewRepository.findByUserId(userId, sortedPageable);
+        Slice<Review> reviewSlice = reviewRepository.findByUserId(userId, pageable);
 
         return reviewSlice.map(UserReviewResult::from);
     }

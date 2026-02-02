@@ -17,14 +17,14 @@ import java.util.List;
 public class UserReviewResponse {
 
     private Long id;
-    private String name;     // 화장실 이름
+    private String toiletName;
     private String gender;
     private String line;
-    private String desc;     // 리뷰 내용 (content)
-    private Double star;     // 별점 (rating)
+    private String desc;
+    private Double star;
     private List<ImageInfoResponse> photo;
     private List<String> tag;
-    private Boolean isDisabledAccess;   // 장애인 화장실 여부
+    private Boolean isDisabledAccess;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
@@ -43,7 +43,7 @@ public class UserReviewResponse {
     public static UserReviewResponse from(UserReviewResult result) {
         return UserReviewResponse.builder()
                 .id(result.getId())
-                .name(result.getToiletName())
+                .toiletName(result.getToiletName())
                 .gender(result.getGender())
                 .line(result.getLine())
                 .desc(result.getContent())

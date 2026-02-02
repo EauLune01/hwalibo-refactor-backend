@@ -21,7 +21,7 @@ public class ReviewUpdateRequest {
     private Double star;
 
     @NotBlank(message = "내용은 필수입니다.")
-    private String description;
+    private String content;
 
     private List<Tag> tags;
 
@@ -31,7 +31,7 @@ public class ReviewUpdateRequest {
     public ReviewUpdateCommand toCommand() {
         return ReviewUpdateCommand.builder()
                 .rating(this.star)
-                .content(this.description)
+                .content(this.content)
                 .tags(this.tags)
                 .isDisabledAccess(this.isDisabledAccess)
                 .build();

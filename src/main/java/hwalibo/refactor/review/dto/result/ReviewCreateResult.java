@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ReviewCreateResult {
     private Long reviewId;
-    private List<ReviewImageInfo> images; // List<String> -> List<ReviewImageInfo>
+    private List<ReviewImageInfo> images;
 
     public static ReviewCreateResult of(Long reviewId, List<ReviewImageInfo> images) {
         return ReviewCreateResult.builder()

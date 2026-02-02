@@ -21,7 +21,7 @@ public class ReviewUpdateCommand {
     public static ReviewUpdateCommand of(ReviewUpdateRequest request) {
         return ReviewUpdateCommand.builder()
                 .rating(request.getStar())
-                .content(request.getDescription())
+                .content(request.getContent())
                 .isDisabledAccess(request.isDisabledAccess())
                 .tags(request.getTags() != null ?
                         request.getTags() : new ArrayList<>())

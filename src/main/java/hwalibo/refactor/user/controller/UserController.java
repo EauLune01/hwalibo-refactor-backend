@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -86,9 +87,14 @@ public class UserController {
     @GetMapping("/reviews")
     public ResponseEntity<ApiResponse<SliceResponse<UserReviewResponse>>> getMyReviews(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable) {
         Long userId = (customOAuth2User != null) ? customOAuth2User.getUser().getId() : null;
         Slice<UserReviewResult> resultSlice = userQueryService.getUserReviews(userId, pageable);
-        return ResponseEntity.ok(new ApiResponse<>(true, 200, "리뷰 목록을 성공적으로 조회했습니다.", SliceResponse.from(resultSlice.map(UserReviewResponse::from))));
+        Slice<UserReviewResponse> responseSlice = resultSlice.map(UserReviewResponse::from);
+        return ResponseEntity.ok(new ApiResponse<>(true, 200, "리뷰 목록을 성공적으로 조회했습니다.", SliceResponse.from(responseSlice)));
     }
 }

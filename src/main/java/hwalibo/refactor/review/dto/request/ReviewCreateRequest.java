@@ -21,7 +21,7 @@ import java.util.List;
 public class ReviewCreateRequest {
 
     @NotBlank(message = "리뷰 내용은 필수 입력값입니다.")
-    private String desc;
+    private String content;
 
     @NotNull(message = "별점은 필수 입력값입니다.")
     @DecimalMin(value = "0.5", message = "별점은 0.5 이상이어야 합니다.")
@@ -37,9 +37,9 @@ public class ReviewCreateRequest {
         return ReviewCreateCommand.builder()
                 .toiletId(toiletId)
                 .userId(userId)
-                .content(request.getDesc())
+                .content(request.getContent())
                 .rating(request.getStar())
-                .isDisabledAccess(request.getIsDisabledAccess()) // 매핑 추가
+                .isDisabledAccess(request.getIsDisabledAccess())
                 .tags(request.getTag() != null ?
                         request.getTag().stream().map(Tag::valueOf).toList() :
                         new ArrayList<>())

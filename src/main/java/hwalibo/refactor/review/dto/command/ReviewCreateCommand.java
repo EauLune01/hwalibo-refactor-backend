@@ -24,7 +24,7 @@ public class ReviewCreateCommand {
         return ReviewCreateCommand.builder()
                 .toiletId(toiletId)
                 .userId(userId)
-                .content(request.getDesc())
+                .content(request.getContent())
                 .rating(request.getStar())
                 .isDisabledAccess(request.getIsDisabledAccess())
                 .tags(request.getTag() != null ?
