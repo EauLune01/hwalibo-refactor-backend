@@ -16,11 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserCommandService {
     private final UserRepository userRepository;
+    private final UserCacheService userCacheService;
 
-    public void updateUserName(User loginUser, UserNameUpdateCommand command) {
-        User user = getAuthenticatedUserOrThrow(loginUser);
-        validateNicknameChange(user, command.getNewName());
+    public void updateUserName(Long userId, UserNameUpdateCommand command) {
+        User user = userRepository.findById(userId)
+                .map(u -> {
+                    validateNicknameChange(u, command.getNewName());
+                    return u;
+                })
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
         user.updateName(command.getNewName());
+        userCacheService.evictUserRate(user.getId());
     }
 
     /******************** Helper Method ********************/
@@ -32,13 +38,5 @@ public class UserCommandService {
         if (userRepository.existsByName(newName)) {
             throw new DuplicateUserNameException("이미 존재하는 닉네임입니다.");
         }
-    }
-
-    private User getAuthenticatedUserOrThrow(User loginUser) {
-        if (loginUser == null) {
-            throw new UnauthorizedException("로그인이 필요합니다.");
-        }
-        return userRepository.findById(loginUser.getId())
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     }
 }

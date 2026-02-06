@@ -18,19 +18,19 @@ public class OpenAISummaryProvider {
     private final ChatClient chatClient;
 
     public String getSummaryFromOpenAI(String combinedText) {
-        ReviewSummaryResult result = chatClient.prompt()
+        String summary = chatClient.prompt()
                 .user(u -> u
                         .text("제공된 화장실 리뷰와 태그들을 바탕으로 핵심만 요약하세요: {review}")
                         .param("review", combinedText)
                 )
                 .call()
-                .entity(ReviewSummaryResult.class);
+                .content();
 
-        if (result == null || result.getSummary() == null) {
+        if (summary == null || summary.isBlank()) {
             throw new RuntimeException("AI 요약 결과 생성 실패");
         }
 
-        return formatToMaxBytes(result.getSummary(), 200);
+        return formatToMaxBytes(summary, 200);
     }
 
     /******************** Helper Method ********************/

@@ -9,7 +9,6 @@ import hwalibo.refactor.global.auth.dto.response.ReissueTokenResponse;
 import hwalibo.refactor.global.auth.dto.result.ReissueTokenResult;
 import hwalibo.refactor.global.auth.jwt.JwtConstants;
 import hwalibo.refactor.global.auth.service.AuthCommandService;
-import hwalibo.refactor.global.auth.service.AuthQueryService;
 import hwalibo.refactor.global.dto.response.ApiResponse;
 import hwalibo.refactor.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthCommandService authCommandService;
-    private final AuthQueryService authQueryService;
 
     @Operation(
             summary = "토큰 재발급 (Refresh)",
@@ -59,18 +57,16 @@ public class AuthController {
     public ResponseEntity<ApiResponse<ReissueTokenResponse>> refreshToken(
             @RequestHeader(value = JwtConstants.HEADER_STRING, required = false) String authHeader,
             @Valid @RequestBody ReissueTokenRequest request) {
-
         String accessToken = extractAccessToken(authHeader);
         ReissueTokenCommand command = ReissueTokenCommand.of(accessToken, request.getRefreshToken());
         ReissueTokenResult result = authCommandService.reissue(command);
-        ReissueTokenResponse response = authQueryService.getReissueResponse(result);
-        return ResponseEntity.ok(new ApiResponse<>(true, 200, "토큰이 성공적으로 재발급되었습니다.", response));
+        return ResponseEntity.ok(new ApiResponse<>(true, 200, "토큰이 성공적으로 재발급되었습니다.", ReissueTokenResponse.from(result)));
     }
 
     @Operation(summary = "로그아웃", description = "리프레시 토큰을 삭제하고 액세스 토큰을 블랙리스트에 등록합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200", // 명세서에 204라 썼지만 ApiResponse 규격을 위해 200 추천
+                    responseCode = "200",
                     description = "로그아웃 성공",
                     content = @Content(schema = @Schema(implementation = ApiResponse.class))
             ),
@@ -85,7 +81,7 @@ public class AuthController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @RequestHeader(value = JwtConstants.HEADER_STRING, required = false) String authHeader) {
         String accessToken = extractAccessToken(authHeader);
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
+        User loginUser = customOAuth2User.getUser();
         LogoutCommand command = LogoutCommand.of(loginUser, accessToken);
         authCommandService.logout(command);
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "성공적으로 로그아웃되었습니다.", null));
@@ -110,9 +106,8 @@ public class AuthController {
     @DeleteMapping("/withdraw")
     public ResponseEntity<ApiResponse<Void>> withdrawUser(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-            @RequestHeader(value = JwtConstants.HEADER_STRING, required = false) String authHeader
-    ) {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
+            @RequestHeader(value = JwtConstants.HEADER_STRING, required = false) String authHeader) {
+        User loginUser = customOAuth2User.getUser();
         String accessToken = extractAccessToken(authHeader);
         authCommandService.withdraw(WithdrawCommand.of(loginUser, accessToken));
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "성공적으로 회원 탈퇴되었습니다.", null));

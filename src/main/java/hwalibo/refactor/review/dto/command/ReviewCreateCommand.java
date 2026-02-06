@@ -27,9 +27,7 @@ public class ReviewCreateCommand {
                 .content(request.getContent())
                 .rating(request.getStar())
                 .isDisabledAccess(request.getIsDisabledAccess())
-                .tags(request.getTag() != null ?
-                        request.getTag().stream().map(Tag::valueOf).toList() :
-                        new ArrayList<>())
+                .tags(request.getTags() != null ? request.getTags() : new ArrayList<>())
                 .build();
     }
 }

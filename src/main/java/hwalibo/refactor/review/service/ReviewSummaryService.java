@@ -8,7 +8,6 @@ import hwalibo.refactor.review.dto.result.ReviewSummaryResult;
 import hwalibo.refactor.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,17 +24,16 @@ public class ReviewSummaryService {
     private final OpenAISummaryProvider openAISummaryProvider;
 
     @Cacheable(value = "review-summaries", key = "#toiletId")
-    public ReviewSummaryResult summarizeByToiletId(Long toiletId) {
-        List<Review> reviews = getLatestReviewsOrThrow(toiletId);
+    public ReviewSummaryResult summarizeByToiletId(Long toiletId,Pageable pageable) {
+        List<Review> reviews = getLatestReviewsOrThrow(toiletId, pageable);
         String combinedText = combineReviewContentsOrThrow(reviews);
         String summary = requestSummaryWithExceptionHandling(combinedText);
         return new ReviewSummaryResult(summary);
     }
 
     /******************** Helper Method ********************/
-    private List<Review> getLatestReviewsOrThrow(Long toiletId) {
-        Pageable limit = PageRequest.of(0, 10);
-        List<Review> reviews = reviewRepository.findLatestReviews(toiletId, limit);
+    private List<Review> getLatestReviewsOrThrow(Long toiletId,Pageable pageable) {
+        List<Review> reviews = reviewRepository.findByToiletIdOrderByCreatedAtDesc(toiletId, pageable);
         if (reviews.isEmpty()) {
             throw new ReviewNotFoundException("해당 화장실에 리뷰가 없습니다.");
         }

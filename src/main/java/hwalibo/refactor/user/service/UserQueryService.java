@@ -1,8 +1,10 @@
 package hwalibo.refactor.user.service;
 
+import hwalibo.refactor.global.domain.UserStatus;
 import hwalibo.refactor.global.exception.auth.UnauthorizedException;
 import hwalibo.refactor.global.exception.user.UserNotFoundException;
 import hwalibo.refactor.review.domain.Review;
+import hwalibo.refactor.review.dto.response.ReviewResponse;
 import hwalibo.refactor.review.repository.ReviewRepository;
 import hwalibo.refactor.user.domain.User;
 import hwalibo.refactor.user.dto.result.UserResult;
@@ -23,28 +25,24 @@ public class UserQueryService {
     private final UserCacheService userCacheService;
     private final ReviewRepository reviewRepository;
 
-    public UserResult getUserInfo(User loginUser) {
-        User user = validateAndGetActiveUser(loginUser);
-
+    public UserResult getUserInfo(Long userId) {
+        User user = validateAndGetActiveUser(userId);
         int rate = userCacheService.calculateUserRate(user.getId());
-
         return UserResult.from(user, rate);
     }
 
     @Transactional(readOnly = true)
     public Slice<UserReviewResult> getUserReviews(Long userId, Pageable pageable) {
-        Slice<Review> reviewSlice = reviewRepository.findByUserId(userId, pageable);
-
+        Slice<Review> reviewSlice = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         return reviewSlice.map(UserReviewResult::from);
     }
 
     /******************** Helper Method ********************/
 
-    private User validateAndGetActiveUser(User loginUser) {
-        if (loginUser == null) throw new UnauthorizedException("로그인이 필요합니다.");
-
-        return userRepository.findById(loginUser.getId())
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    private User validateAndGetActiveUser(Long userId) {
+        return userRepository.findById(userId)
+                .filter(user -> user.getStatus() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없거나 활성 상태가 아닙니다."));
     }
 
 }

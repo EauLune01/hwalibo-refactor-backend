@@ -39,24 +39,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String providerId = oAuth2UserInfo.getProviderId();
         Gender genderEnum = oAuth2UserInfo.getGender();
 
-        User user = userRepository.findUserEvenIfDeleted(provider, providerId)
+        User user = userRepository.findByProviderAndProviderId(provider, providerId)
                 .map(existingUser -> {
-
-                    // 탈퇴 상태면 복구 (재가입)
+                    // 1. 탈퇴한 유저라면 이름까지 업데이트하며 복구
                     if (existingUser.getStatus() == UserStatus.DELETED) {
                         existingUser.reActivate();
                         existingUser.updateName(oAuth2UserInfo.getName());
-                        existingUser.updateProfileImage(oAuth2UserInfo.getProfileImageUrl());
-                        existingUser.updateGender(genderEnum);
                     }
-                    else {
-                        // 이미 ACTIVE 유저
-                        existingUser.updateProfileImage(oAuth2UserInfo.getProfileImageUrl());
-                        existingUser.updateGender(genderEnum);
-                    }
-                    return userRepository.save(existingUser);
+
+                    // 2. 이미 ACTIVE거나 방금 복구된 유저 모두 최신 정보로 갱신
+                    existingUser.updateProfileImage(oAuth2UserInfo.getProfileImageUrl());
+                    existingUser.updateGender(genderEnum);
+
+                    return existingUser;
                 })
-                .orElseGet(() -> saveNewUser(oAuth2UserInfo)); // 신규 가입자는 그대로 생성
+                .orElseGet(() -> saveNewUser(oAuth2UserInfo));
+
         return new CustomOAuth2User(user, oAuth2UserInfo.getAttributes());
     }
 

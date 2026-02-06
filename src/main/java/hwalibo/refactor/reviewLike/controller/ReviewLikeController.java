@@ -36,7 +36,7 @@ public class ReviewLikeController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long toiletId,
             @PathVariable Long reviewId) {
-        Long userId = (customOAuth2User != null) ? customOAuth2User.getUser().getId() : null;
+        Long userId = customOAuth2User.getUser().getId();
         reviewLikeCommandService.addLike(ReviewLikeAddCommand.of(userId,toiletId,reviewId));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(true, 201, "리뷰 좋아요 성공", null));
@@ -56,7 +56,7 @@ public class ReviewLikeController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long toiletId,
             @PathVariable Long reviewId) {
-        Long userId = (customOAuth2User != null) ? customOAuth2User.getUser().getId() : null;
+        Long userId =customOAuth2User.getUser().getId();
         reviewLikeCommandService.removeLike(ReviewLikeRemoveCommand.of(userId, toiletId,reviewId));
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "리뷰 좋아요 취소 성공", null));
     }

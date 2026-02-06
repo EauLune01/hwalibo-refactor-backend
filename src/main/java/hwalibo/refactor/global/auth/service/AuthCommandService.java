@@ -31,9 +31,7 @@ public class AuthCommandService {
     private final NaverAuthService naverAuthService;
 
     public ReissueTokenResult reissue(ReissueTokenCommand command) {
-        validateReissueConditions(command);
-        User user = userRepository.findByRefreshToken(command.getRefreshToken())
-                .orElseThrow(() -> new TokenNotFoundException("저장소에 Refresh Token이 존재하지 않습니다."));
+        User user = getValidatedUserForReissue(command);
         ReissueTokenResult result = jwtTokenProvider.createTokenSet(
                 jwtTokenProvider.getAuthenticationFromUser(user)
         );
@@ -62,13 +60,17 @@ public class AuthCommandService {
 
     /******************** Helper Method ********************/
 
-    private void validateReissueConditions(ReissueTokenCommand command) {
+    private User getValidatedUserForReissue(ReissueTokenCommand command) {
         if (command.getAccessToken() != null && isBlacklisted(command.getAccessToken())) {
             throw new UnauthorizedException("로그아웃된 사용자입니다.");
         }
+
         if (!jwtTokenProvider.validateToken(command.getRefreshToken())) {
             throw new InvalidTokenException("유효하지 않은 Refresh Token 입니다.");
         }
+
+        return userRepository.findByRefreshToken(command.getRefreshToken())
+                .orElseThrow(() -> new TokenNotFoundException("저장소에 Refresh Token이 존재하지 않습니다."));
     }
 
     private boolean isBlacklisted(String accessToken) {

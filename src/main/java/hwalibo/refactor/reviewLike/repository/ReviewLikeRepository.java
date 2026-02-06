@@ -6,13 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
-    @Query("SELECT COUNT(rl) > 0 FROM ReviewLike rl " +
-            "WHERE rl.review.id = :reviewId AND rl.user.id = :userId")
-    boolean existsByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
+    boolean existsByReviewIdAndUserId(Long reviewId, Long userId);
 
-    @Query("SELECT rl FROM ReviewLike rl " +
-            "WHERE rl.review.id = :reviewId AND rl.user.id = :userId")
-    Optional<ReviewLike> findByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
+    Optional<ReviewLike> findByReviewIdAndUserId(Long reviewId, Long userId);
+
+    @Query("select rl.review.id from ReviewLike rl where rl.user.id = :userId")
+    List<Long> findReviewIdsByUserId(@Param("userId") Long userId);
 }

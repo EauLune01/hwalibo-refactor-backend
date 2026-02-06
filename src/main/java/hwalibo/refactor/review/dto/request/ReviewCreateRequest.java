@@ -28,9 +28,9 @@ public class ReviewCreateRequest {
     @DecimalMax(value = "5.0", message = "별점은 5.0 이하이어야 합니다.")
     private Double star;
 
-    private List<String> tag;
+    private List<Tag> tags;
 
-    @NotNull(message = "장애인 화장실 여부를 선택해주세요.") // 필수 입력값으로 추가
+    @NotNull(message = "장애인 화장실 여부를 선택해주세요.")
     private Boolean isDisabledAccess;
 
     public static ReviewCreateCommand of(ReviewCreateRequest request, Long toiletId, Long userId) {
@@ -40,9 +40,7 @@ public class ReviewCreateRequest {
                 .content(request.getContent())
                 .rating(request.getStar())
                 .isDisabledAccess(request.getIsDisabledAccess())
-                .tags(request.getTag() != null ?
-                        request.getTag().stream().map(Tag::valueOf).toList() :
-                        new ArrayList<>())
+                .tags(request.getTags() != null ? request.getTags() : new ArrayList<>())
                 .build();
     }
 }

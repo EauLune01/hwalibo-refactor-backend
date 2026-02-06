@@ -1,13 +1,15 @@
 package hwalibo.refactor.review.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hwalibo.refactor.global.auth.CustomOAuth2User;
 import hwalibo.refactor.global.domain.Gender;
 import hwalibo.refactor.global.dto.response.ApiResponse;
 import hwalibo.refactor.global.dto.response.SliceResponse;
+import hwalibo.refactor.review.domain.SortType;
 import hwalibo.refactor.review.dto.command.ReviewCreateCommand;
 import hwalibo.refactor.review.dto.command.ReviewImageUpdateCommand;
 import hwalibo.refactor.review.dto.command.ReviewUpdateCommand;
+import hwalibo.refactor.review.dto.query.PhotoReviewResult;
+import hwalibo.refactor.review.dto.query.ReviewSearchCondition;
 import hwalibo.refactor.review.dto.request.ReviewCreateRequest;
 import hwalibo.refactor.review.dto.request.ReviewImageDeleteRequest;
 import hwalibo.refactor.review.dto.request.ReviewUpdateRequest;
@@ -34,7 +36,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "Review", description = "화장실 리뷰 관리 API")
@@ -48,7 +49,6 @@ public class ReviewController {
     private final ReviewImageCommandService reviewImageCommandService;
     private final ReviewImageQueryService reviewImageQueryService;
     private final ReviewSummaryService reviewSummaryService;
-    private final ObjectMapper objectMapper;
 
     @Operation(
             summary = "리뷰 통합 등록",
@@ -71,9 +71,8 @@ public class ReviewController {
                             schema = @Schema(implementation = ReviewCreateRequest.class)
                     )
             )
-            @RequestPart(value = "request") String requestJson,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
-        ReviewCreateRequest request = objectMapper.readValue(requestJson, ReviewCreateRequest.class);
+            @RequestPart(value = "request") ReviewCreateRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         Long loginUserId = customOAuth2User.getUser().getId();
         Long reviewId = reviewCommandService.createReview(ReviewCreateCommand.of(request, toiletId, loginUserId), images);
         ReviewCreateResult result = reviewQueryService.getReviewCreateResult(reviewId);
@@ -90,7 +89,7 @@ public class ReviewController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewUpdateRequest request) {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
+        User loginUser = customOAuth2User.getUser();
         reviewCommandService.updateReview(loginUser.getId(), reviewId, ReviewUpdateCommand.of(request));
         ReviewUpdateResult result = reviewQueryService.getReviewUpdateResult(reviewId);
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "리뷰가 성공적으로 수정되었습니다.", ReviewUpdateResponse.from(result)));
@@ -121,13 +120,9 @@ public class ReviewController {
                             schema = @Schema(implementation = ReviewImageDeleteRequest.class)
                     )
             )
-            @RequestPart(value = "request", required = false) String deleteRequestJson,
-            @RequestPart(value = "photos", required = false) List<MultipartFile> photos) throws IOException {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
-        ReviewImageDeleteRequest deleteRequest = null;
-        if (deleteRequestJson != null && !deleteRequestJson.isBlank()) {
-            deleteRequest = objectMapper.readValue(deleteRequestJson, ReviewImageDeleteRequest.class);
-        }
+            @RequestPart(value = "request", required = false) ReviewImageDeleteRequest deleteRequest,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
+        User loginUser = customOAuth2User.getUser();
         reviewImageCommandService.updateImages(ReviewImageUpdateCommand.of(loginUser.getId(), reviewId, deleteRequest, photos));
         List<ReviewImageUpdateResult> updatedResults = reviewImageQueryService.getReviewImageUpdateResults(reviewId);
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "이미지가 성공적으로 수정되었습니다.", ReviewImageUpdateResponse.of(reviewId, updatedResults)));
@@ -142,9 +137,32 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<Void>> deleteReview(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long reviewId) {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
+        User loginUser = customOAuth2User.getUser();
         reviewCommandService.deleteReview(loginUser.getId(), reviewId);
         return ResponseEntity.ok(new ApiResponse<>(true, HttpStatus.OK.value(), "리뷰가 성공적으로 삭제되었습니다.", null));
+    }
+
+    @Operation(
+            summary = "화장실 리뷰 목록 조회 (동적 필터링)",
+            description = "특정 화장실의 리뷰를 조회합니다. " +
+                    "정렬(최신, 별점, 장애인우선)과 필터(성별, 태그, 사진유무, 내가 좋아요 누른 리뷰만 보기) 적용이 가능합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "리뷰 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 화장실")
+    })
+    @GetMapping("/toilet/{toiletId}/reviews")
+    public ResponseEntity<ApiResponse<SliceResponse<ReviewResponse>>> getReviewList(
+            @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+            @PathVariable Long toiletId,
+            @ModelAttribute ReviewSearchCondition condition,
+            Pageable pageable) {
+        Long userId =customOAuth2User.getUser().getId();
+        ReviewSearchCondition searchCondition = (condition != null) ? condition : ReviewSearchCondition.of(null, null, false, SortType.LATEST, false);
+        Slice<ReviewResult> results = reviewQueryService.getReviewList(userId, toiletId, searchCondition, pageable);
+        Slice<ReviewResponse> response = results.map(ReviewResponse::from);
+        return ResponseEntity.ok(new ApiResponse<>(true, 200, "조회 성공", SliceResponse.from(response)));
     }
 
     @Operation(
@@ -195,8 +213,10 @@ public class ReviewController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "AI 생성 오류")
     })
     @GetMapping("/{toiletId}/reviews/summary")
-    public ResponseEntity<ApiResponse<ReviewSummaryResponse>> summarize(@AuthenticationPrincipal CustomOAuth2User customOAuth2User, @PathVariable Long toiletId) {
-        ReviewSummaryResponse data = ReviewSummaryResponse.from(reviewSummaryService.summarizeByToiletId(toiletId));
+    public ResponseEntity<ApiResponse<ReviewSummaryResponse>> summarize(@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+                                                                        @PathVariable Long toiletId,
+                                                                        @PageableDefault Pageable pageable) {
+        ReviewSummaryResponse data = ReviewSummaryResponse.from(reviewSummaryService.summarizeByToiletId(toiletId, pageable));
         return ResponseEntity.ok(new ApiResponse<>(true, HttpStatus.OK.value(), "리뷰 요약 성공", data));
     }
 }

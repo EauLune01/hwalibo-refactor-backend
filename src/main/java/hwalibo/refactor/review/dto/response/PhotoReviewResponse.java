@@ -1,6 +1,6 @@
 package hwalibo.refactor.review.dto.response;
 
-import hwalibo.refactor.review.dto.result.PhotoReviewResult;
+import hwalibo.refactor.review.dto.query.PhotoReviewResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

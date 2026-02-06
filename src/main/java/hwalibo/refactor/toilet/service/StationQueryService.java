@@ -1,10 +1,9 @@
 package hwalibo.refactor.toilet.service;
 
 import hwalibo.refactor.toilet.dto.command.StationNearestCommand;
-import hwalibo.refactor.toilet.dto.response.StationSuggestResponse;
+import hwalibo.refactor.toilet.dto.query.StationSearchResult;
+import hwalibo.refactor.toilet.dto.query.StationSuggestResult;
 import hwalibo.refactor.toilet.dto.result.StationNearestResult;
-import hwalibo.refactor.toilet.dto.result.StationSearchResult;
-import hwalibo.refactor.toilet.dto.result.StationSuggestResult;
 import hwalibo.refactor.toilet.respository.ToiletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

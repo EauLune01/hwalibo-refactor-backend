@@ -37,7 +37,6 @@ public class ToiletController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long toiletId) {
         ToiletDetailResult result = toiletQueryService.getToiletDetail(toiletId);
-        ToiletDetailResponse response = ToiletDetailResponse.from(result);
-        return ResponseEntity.ok(new ApiResponse<>(true, 200, "화장실 상세 조회 성공", response));
+        return ResponseEntity.ok(new ApiResponse<>(true, 200, "화장실 상세 조회 성공", ToiletDetailResponse.from(result)));
     }
 }

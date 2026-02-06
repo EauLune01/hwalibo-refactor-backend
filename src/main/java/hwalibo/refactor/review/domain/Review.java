@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +61,11 @@ public class Review extends BaseTimeEntity {
         this.content = content;
         this.rating = rating;
         this.isDisabledAccess = isDisabledAccess;
-        this.tags = (tags != null) ? tags : new ArrayList<>();
         this.likeCount = 0;
+
+        if (tags != null) {
+            this.tags.addAll(tags);
+        }
     }
 
     /**
@@ -92,7 +96,11 @@ public class Review extends BaseTimeEntity {
         this.content = content;
         this.rating = rating;
         this.isDisabledAccess = isDisabledAccess;
-        this.tags = (tags != null) ? tags : new ArrayList<>();
+
+        this.tags.clear();
+        if (tags != null) {
+            this.tags.addAll(tags);
+        }
     }
 
     /**

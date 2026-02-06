@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class WithdrawCommand {
-    private final User user;
-    private final String accessToken;
+    private User user;
+    private String accessToken;
 
     public static WithdrawCommand of(User user, String accessToken) {
         return new WithdrawCommand(user, accessToken);

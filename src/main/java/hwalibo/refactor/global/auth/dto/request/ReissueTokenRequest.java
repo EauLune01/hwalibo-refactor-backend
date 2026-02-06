@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ReissueTokenRequest {
-
     @NotBlank(message = "리프레시 토큰은 필수입니다.")
-    private final String refreshToken;
+    private String refreshToken;
 }

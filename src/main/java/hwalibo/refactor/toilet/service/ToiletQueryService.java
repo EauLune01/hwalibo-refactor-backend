@@ -1,9 +1,6 @@
 package hwalibo.refactor.toilet.service;
 
-import hwalibo.refactor.global.exception.toilet.ToiletNotFoundException;
-import hwalibo.refactor.toilet.domain.Toilet;
 import hwalibo.refactor.toilet.dto.result.ToiletDetailResult;
-import hwalibo.refactor.toilet.respository.ToiletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

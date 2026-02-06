@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class LogoutCommand {
-    private final User user;
-    private final String accessToken;
+    private User user;
+    private String accessToken;
 
     public static LogoutCommand of(User user, String accessToken) {
         return new LogoutCommand(user, accessToken);

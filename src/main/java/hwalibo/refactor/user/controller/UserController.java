@@ -44,8 +44,8 @@ public class UserController {
     })
     @GetMapping("/profile")
     public ResponseEntity<ApiResponse<UserResponse>> profile(@AuthenticationPrincipal CustomOAuth2User customOAuth2User) {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
-        UserResponse data = UserResponse.from(userQueryService.getUserInfo(loginUser));
+        Long userId = customOAuth2User.getUser().getId();
+        UserResponse data = UserResponse.from(userQueryService.getUserInfo(userId));
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "내 정보 조회 성공", data));
     }
 
@@ -71,8 +71,8 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> updateName(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @Valid @RequestBody UserNameUpdateRequest request) {
-        User loginUser = (customOAuth2User != null) ? customOAuth2User.getUser() : null;
-        userCommandService.updateUserName(loginUser, UserNameUpdateCommand.of(loginUser.getId(), request.getName()));
+        Long userId = customOAuth2User.getUser().getId();
+        userCommandService.updateUserName(userId, UserNameUpdateCommand.of(userId, request.getName()));
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "사용자 이름이 성공적으로 수정되었습니다.", null));
     }
 
@@ -88,11 +88,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<SliceResponse<UserReviewResponse>>> getMyReviews(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PageableDefault(
-                    size = 10,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             ) Pageable pageable) {
-        Long userId = (customOAuth2User != null) ? customOAuth2User.getUser().getId() : null;
+        Long userId = customOAuth2User.getUser().getId() ;
         Slice<UserReviewResult> resultSlice = userQueryService.getUserReviews(userId, pageable);
         Slice<UserReviewResponse> responseSlice = resultSlice.map(UserReviewResponse::from);
         return ResponseEntity.ok(new ApiResponse<>(true, 200, "리뷰 목록을 성공적으로 조회했습니다.", SliceResponse.from(responseSlice)));

@@ -6,7 +6,6 @@ import hwalibo.refactor.global.service.S3Service;
 import hwalibo.refactor.review.domain.Review;
 import hwalibo.refactor.review.domain.ReviewImage;
 import hwalibo.refactor.review.dto.command.ReviewImageUpdateCommand;
-import hwalibo.refactor.review.dto.result.ReviewImageUpdateResult;
 import hwalibo.refactor.review.repository.ReviewImageRepository;
 import hwalibo.refactor.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,41 +27,45 @@ public class ReviewImageCommandService {
 
     public void uploadAndSaveAll(List<MultipartFile> files, Review review) {
         List<String> imageUrls = s3Service.uploadAll(files, "reviews");
-
         if (imageUrls.isEmpty()) {return;}
-
-        for (String url : imageUrls) {
-            ReviewImage reviewImage = ReviewImage.create(review, url, 0);
-            review.addReviewImage(reviewImage);
-            imageValidationService.validateReviewImage(reviewImage.getId());
-        }
+        processAndValidateImages(review, imageUrls);
     }
 
-    public List<ReviewImageUpdateResult> updateImages(ReviewImageUpdateCommand command) {
-        Review review = reviewRepository.findReviewWithImages(command.getReviewId())
+    public void updateImages(ReviewImageUpdateCommand command) {
+        Review review = reviewRepository.findById(command.getReviewId())
                 .orElseThrow(() -> new ReviewNotFoundException("리뷰가 존재하지 않습니다."));
-
-        if (!review.getUser().getId().equals(command.getUserId())) {
-            throw new SecurityException("본인이 작성한 리뷰만 수정할 수 있습니다.");
-        }
-
+        validateReviewOwner(review, command.getUserId());
         processImageDeletion(review, command.getDeleteImageIds());
         processImageAddition(review, command.getNewPhotos());
-
-        return review.getReviewImages().stream()
-                .map(ReviewImageUpdateResult::from)
-                .toList();
     }
 
     public void deleteAllByReview(Review review) {
         List<ReviewImage> images = review.getReviewImages();
-
         images.forEach(image -> s3Service.delete(image.getUrl()));
-
         review.getReviewImages().clear();
     }
 
     /******************** Helper Method ********************/
+
+    private void processAndValidateImages(Review review, List<String> imageUrls) {
+        List<ReviewImage> reviewImages = imageUrls.stream()
+                .map(url -> {
+                    ReviewImage img = ReviewImage.create(review, url, 0);
+                    review.addReviewImage(img);
+                    return img;
+                })
+                .toList();
+        reviewImageRepository.saveAll(reviewImages);
+        reviewImages.forEach(img ->
+                imageValidationService.validateReviewImage(img.getId())
+        );
+    }
+
+    private void validateReviewOwner(Review review, Long userId) {
+        if (!review.getUser().getId().equals(userId)) {
+            throw new SecurityException("본인이 작성한 리뷰만 수정할 수 있습니다.");
+        }
+    }
 
     private void processImageDeletion(Review review, List<Long> deleteImageIds) {
         if (deleteImageIds == null || deleteImageIds.isEmpty()) return;

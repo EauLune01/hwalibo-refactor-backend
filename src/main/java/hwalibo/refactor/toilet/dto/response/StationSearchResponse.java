@@ -1,6 +1,6 @@
 package hwalibo.refactor.toilet.dto.response;
 
-import hwalibo.refactor.toilet.dto.result.StationSearchResult;
+import hwalibo.refactor.toilet.dto.query.StationSearchResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -16,13 +16,13 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class ImageCleanupScheduler {
 
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
 
     @Scheduled(cron = "0 0 4 * * *")
-    @Transactional
     public void cleanupRejectedImages() {
         log.info("🧹 [새벽 청소] REJECTED 이미지 정리를 시작합니다.");
 
