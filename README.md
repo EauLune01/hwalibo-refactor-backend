@@ -22,4 +22,4 @@ Cloud Storage: AWS S3 (Spring Cloud AWS 3.1.1)
 
 <API & Documentation>
 API Specs: Swagger / SpringDoc OpenAPI 2.4.0
-Validation: Hibernate Validato
+Validation: Hibernate Validation
