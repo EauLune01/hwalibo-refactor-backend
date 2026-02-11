@@ -23,13 +23,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, String> redisTemplate;
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
+
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token)) {
@@ -44,14 +42,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.clearContext();
             }
         }
+
         chain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_PREFIX.length());
+        String bearerToken = request.getHeader(JwtConstants.HEADER_STRING);
+
+        if (StringUtils.hasText(bearerToken)
+                && bearerToken.startsWith(JwtConstants.TOKEN_PREFIX)) {
+
+            return bearerToken.substring(JwtConstants.TOKEN_PREFIX.length());
         }
+
         return null;
     }
 
@@ -61,6 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getMethod().equals("OPTIONS");
+        return "OPTIONS".equals(request.getMethod());
     }
 }
