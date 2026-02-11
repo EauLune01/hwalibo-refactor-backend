@@ -34,8 +34,6 @@ public class JwtTokenProvider {
     private final long refreshTokenValidityInMilliseconds;
     private final UserRepository userRepository;
 
-    private static final String TOKEN_PREFIX = "Bearer ";
-
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secretKey,
@@ -107,9 +105,9 @@ public class JwtTokenProvider {
         token = stripBearerPrefix(token);
         try {
             Jwts.parser()
-                    .verifyWith(key) // setSigningKey -> verifyWith
+                    .verifyWith(key)
                     .build()
-                    .parseSignedClaims(token); // parseClaimsJws -> parseSignedClaims
+                    .parseSignedClaims(token);
             return true;
         } catch (JwtException e) {
             log.error("JWT token is invalid: {}", e.getMessage());
@@ -125,7 +123,7 @@ public class JwtTokenProvider {
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload(); // getBody -> getPayload
+                    .getPayload();
 
             Date expiration = claims.getExpiration();
             return expiration.getTime() - System.currentTimeMillis();
@@ -163,12 +161,12 @@ public class JwtTokenProvider {
 
     private String buildToken(String userId, String username, String authorities, Date validity, Gender gender) {
         return Jwts.builder()
-                .subject(userId) // setSubject -> subject
+                .subject(userId)
                 .claim("username", username)
                 .claim("auth", authorities)
                 .claim("gender", gender != null ? gender.name() : null)
-                .expiration(validity) // setExpiration -> expiration
-                .signWith(key) // 알고리즘 명시 안 해도 key 타입 보고 알아서 HS256 등으로 세팅함
+                .expiration(validity)
+                .signWith(key)
                 .compact();
     }
 
@@ -178,15 +176,15 @@ public class JwtTokenProvider {
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload(); // getBody() 대신 getPayload() 사용
+                    .getPayload();
         } catch (JwtException e) {
             throw new IllegalArgumentException("Invalid JWT token", e);
         }
     }
 
     private String stripBearerPrefix(String token) {
-        if (token.startsWith(TOKEN_PREFIX)) {
-            return token.substring(TOKEN_PREFIX.length());
+        if (token.startsWith(JwtConstants.TOKEN_PREFIX)) {
+            return token.substring(JwtConstants.TOKEN_PREFIX.length());
         }
         return token;
     }
