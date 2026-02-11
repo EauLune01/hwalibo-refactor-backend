@@ -20,7 +20,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 1. 필수 애노테이션
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "users",
         uniqueConstraints = {
